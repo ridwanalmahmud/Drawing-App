@@ -1,5 +1,3 @@
-const myCanvas = document.querySelector("#myCanvas");
-
 const canvasProperties = {
     width : window.innerWidth,
     height: window.innerHeight,
@@ -23,15 +21,15 @@ const ctx = myCanvas.getContext("2d");
 clearCanvas();
 
 const shapes = [];
-let path = [];
+let currentShape = null;
 
-myCanvas.addEventListener("pointerdown", e => {
+const downCallbackForRect = function(e) {
     const mousePosition = {
         x: e.offsetX,
         y: e.offsetY
     };
 
-    path.push(mousePosition);
+    currentShape = new Rect(mousePosition, getOptions());
 
     const moveCallback = (e) => {
         const mousePosition = {
@@ -39,31 +37,80 @@ myCanvas.addEventListener("pointerdown", e => {
             y: e.offsetY
         };
 
-        path.push(mousePosition);
+        currentShape.setCorner2(mousePosition);
         clearCanvas();
-        for(const shape of [...shapes, path]) {
-            ctx.beginPath();
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
-            ctx.lineWidth = 5;
-            ctx.moveTo(shape[0].x, shape[0].y);
-            for(let i = 1; i < shape.length; i++) {
-                ctx.lineTo(shape[i].x, shape[i].y);
-            };
-            ctx.stroke();
-        };
+        drawShapes([...shapes, currentShape]);
     };
 
     const upCallback = (e) => {
         myCanvas.removeEventListener("pointermove", moveCallback);
         myCanvas.removeEventListener("pointerup", upCallback);
-        shapes.push(path);
-        path = [];
-
+        shapes.push(currentShape);
     };
 
     myCanvas.addEventListener("pointermove", moveCallback);
     myCanvas.addEventListener("pointerup", upCallback);
-});
+}
+
+const downCallbackForPath = function(e) {
+    const mousePosition = {
+        x: e.offsetX,
+        y: e.offsetY
+    };
+
+    currentShape = new Path(mousePosition, getOptions());
+
+    const moveCallback = (e) => {
+        const mousePosition = {
+            x: e.offsetX,
+            y: e.offsetY
+        };
+
+        currentShape.addPoint(mousePosition);
+        clearCanvas();
+        drawShapes([...shapes, currentShape]);
+    };
+
+    const upCallback = (e) => {
+        myCanvas.removeEventListener("pointermove", moveCallback);
+        myCanvas.removeEventListener("pointerup", upCallback);
+        shapes.push(currentShape);
+    };
+
+    myCanvas.addEventListener("pointermove", moveCallback);
+    myCanvas.addEventListener("pointerup", upCallback);
+}
+
+myCanvas.addEventListener("pointerdown", downCallbackForPath);
+
+function changeTool(tool) {
+    myCanvas.removeEventListener("pointerdown", downCallbackForRect);
+    myCanvas.removeEventListener("pointerdown", downCallbackForRect);
+    switch(tool) {
+        case "rect":
+        myCanvas.addEventListener("pointerdown", downCallbackForRect);
+        break;
+        case "path":
+        myCanvas.addEventListener("pointerdown", downCallbackForPath);
+        break;
+    }
+}
+
+function drawShapes(shapes) {
+    for(const shape of shapes) {
+        shape.draw(ctx);
+    };
+}
+
+function getOptions() {
+    return {
+        fillColor: fillColor.value,
+        strokeColor: strokeColor.value,
+        fill: fill.checked,
+        stroke: stroke.checked,
+        strokeWidth: strokeWidth.value,
+    }
+}
 
 function clearCanvas(){
     ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
