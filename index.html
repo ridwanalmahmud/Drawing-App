@@ -5,11 +5,12 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="myCanvas"></canvas>
+    <canvas id="myCanvas"></canvas><canvas id="helperCanvas"></canvas>
     <div id="toolBox">
         <select onchange="changeTool(this.value)">
             <option value="path" selected>Path</option>
             <option value="rect">Rect</option>
+            <option value="select">Select</option>
         </select>
         <div>
             <input type="color" id="fillColor" value="#ff0000" title="Fill Color">
